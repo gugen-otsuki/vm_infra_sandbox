@@ -1,0 +1,63 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "name": {
+      "type": "String"
+    },
+    "pip_id": {
+      "type": "String"
+    },
+    "vnet_id": {
+      "type": "String"
+    },
+    "nsg_id": {
+      "type": "String"
+    },
+    "private_ip": {
+      "type": "String"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2020-11-01",
+      "name": "[parameters('name')]",
+      "location": "japaneast",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "[parameters('private_ip')]",
+              "privateIPAllocationMethod": "Static",
+              "publicIPAddress": {
+                "id": "[parameters('pip_id')]"
+              },
+              "subnet": {
+                "id": "[concat(parameters('vnet_id'), '/subnets/default')]"
+              },
+              "primary": true,
+              "privateIPAddressVersion": "IPv4"
+            }
+          }
+        ],
+        "dnsSettings": {
+          "dnsServers": []
+        },
+        "enableAcceleratedNetworking": false,
+        "enableIPForwarding": false,
+        "networkSecurityGroup": {
+          "id": "[parameters('nsg_id')]"
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "nic_id": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('name'))]"
+    }
+  }
+}

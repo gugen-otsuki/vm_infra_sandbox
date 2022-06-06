@@ -1,0 +1,75 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "infoList": {
+          "type": "array",
+          "defaultValue": [
+          ]
+        }
+    },
+    "variables": {},
+    "resources": [
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2020-10-01",
+        "name": "nsg",
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "mode": "Incremental",
+            "relativePath": "./nsg.json"
+          }
+        },
+        "dependsOn": []
+      },
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2020-10-01",
+        "name": "vnet",
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "mode": "Incremental",
+            "relativePath": "./vnet.json"
+          }
+        },
+        "dependsOn": []
+      },
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2020-10-01",
+        "name": "createVMs",
+        "copy": {
+          "name": "vms",
+          "count": "[length(parameters('infoList'))]",
+          "mode": "Serial"
+        },
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "mode": "Incremental",
+            "relativePath": "./vm/vm.json"
+          },
+          "parameters": {
+            "name": {
+                "value": "[concat('vm-', copyIndex())]"
+            },
+            "nsg_id": {
+                "value": "[reference('nsg').outputs.nsg_id.value]"
+            },
+            "private_ip": {
+                "value": "[concat('10.0.0.', copyIndex(5))]"
+            },
+            "vnet_id": {
+                "value": "[reference('vnet').outputs.vnet_id.value]"
+            },
+            "info": {
+              "value": "[parameters('info_list')[copyIndex()]]"
+            }
+          }
+        },
+        "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'nsg')]", "[resourceId('Microsoft.Resources/deployments', 'vnet')]"]
+      }
+    ]
+}

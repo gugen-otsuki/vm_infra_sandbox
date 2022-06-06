@@ -1,0 +1,100 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+          "type": "String"
+        },
+        "vnet_id": {
+            "type": "String"
+        },
+        "nsg_id": {
+            "type": "String"
+        },
+        "private_ip": {
+          "type": "String"
+        },
+        "info": {
+          "type": "object"
+        }
+    },
+    "variables": {},
+    "resources": [
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2020-10-01",
+        "name": "disk",
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "mode": "Incremental",
+            "relativePath": "./disk.json"
+          },
+          "parameters": {
+            "name": "[concat(parameters('name'), '_disk')]"
+          }
+        },
+        "dependsOn": []
+      },
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2020-10-01",
+        "name": "nic",
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "mode": "Incremental",
+            "relativePath": "./nic.json"
+          },
+          "parameters": {
+            "name": "[concat(parameters('name'), '_nic')]",
+            "vnet_id": "[parameters('vnet_id')]",
+            "nsg_id": "[parameters('nsg_id')]",
+            "pip_id": "[reference('pip').outputs.pip_id.value]",
+            "private_ip": "[parameters('private_ip')]"
+          }
+        },
+        "dependsOn": ["[resourceId('Microsoft.Resources/deployments', 'pip')]"]
+      },
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2020-10-01",
+        "name": "pip",
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "mode": "Incremental",
+            "relativePath": "./pip.json"
+          },
+          "parameters": {
+            "name": "[concat(parameters('name'), '_pip')]"
+          }
+        },
+        "dependsOn": []
+      },
+      {
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2020-10-01",
+        "name": "vm",
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "mode": "Incremental",
+            "relativePath": "./vm_instance.json"
+          },
+          "parameters": {
+            "vm_name": "[concat(parameters('name'), '_vm_instance')]",
+            "image_id": "[concat(parameters('name'), '_vm_instance')]",
+            "disk_name": "[concat(parameters('name'), '_vm_instance')]",
+            "nic_id": "[concat(parameters('name'), '_nic')]",
+            "info": "[parameters('info')]"
+          }
+        },
+        "dependsOn": [
+          "[resourceId('Microsoft.Resources/deployments', 'disk')]",
+          "[resourceId('Microsoft.Resources/deployments', 'nic')]",
+          "[resourceId('Microsoft.Resources/deployments', 'pip')]"
+        ]
+      }
+    ]
+}

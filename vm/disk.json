@@ -1,0 +1,49 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "type": "String"
+        }
+    },
+    "variables": {
+        "image_id": ""
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/disks",
+            "apiVersion": "2021-12-01",
+            "name": "[parameters('name')]",
+            "location": "japaneast",
+            "sku": {
+                "name": "StandardSSD_LRS",
+                "tier": "Standard"
+            },
+            "zones": [
+                "1"
+            ],
+            "properties": {
+                "osType": "Linux",
+                "hyperVGeneration": "V1",
+                "supportsHibernation": false,
+                "supportedCapabilities": {
+                    "acceleratedNetwork": true,
+                    "architecture": "x64"
+                },
+                "creationData": {
+                    "createOption": "Copy",
+                    "sourceResourceId": "[variables('image_id')]"
+                },
+                "diskSizeGB": 30,
+                "diskIOPSReadWrite": 500,
+                "diskMBpsReadWrite": 60,
+                "encryption": {
+                    "type": "EncryptionAtRestWithPlatformKey"
+                },
+                "networkAccessPolicy": "AllowAll",
+                "publicNetworkAccess": "Enabled",
+                "diskState": "Attached"
+            }
+        }
+    ]
+}
